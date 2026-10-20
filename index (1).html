@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital Legacy Manager</title>
+<meta name="description" content="A secure system for managing and transferring digital assets to authorized beneficiaries.">
+<style>
+:root{
+  --ink:#0d1117; --ink2:#141b24; --ink3:#1c2531; --line:#2a3442;
+  --fg:#e6edf3; --fg2:#9aa7b4; --fg3:#6b7a8c;
+  --gold:#d4a24c; --gold2:#f0c27b;
+  --green:#3fb950; --red:#f85149; --blue:#58a6ff; --amber:#d29922;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--fg); min-height:100vh;
+  font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:ui-serif,Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--blue)}
+
+/* ---------- shell ---------- */
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:12px 20px;
+  background:var(--ink2);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:50;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:ui-serif,Georgia,serif;font-size:17px;font-weight:600}
+.brand .mark{
+  width:28px;height:28px;border-radius:7px;flex:none;
+  background:linear-gradient(145deg,var(--gold2),var(--gold));
+  display:grid;place-items:center;color:#2b1d06;font-weight:800;font-size:13px;
+  font-family:ui-sans-serif,system-ui,sans-serif;
+}
+.spacer{flex:1}
+.who{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg2)}
+.avatar{
+  width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--ink3);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--gold2)
+}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 70px}
+
+/* ---------- nav tabs ---------- */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.tab{
+  background:none;border:none;border-bottom:2px solid transparent;
+  padding:9px 14px;cursor:pointer;color:var(--fg2);font-size:14px;border-radius:6px 6px 0 0;
+}
+.tab:hover{color:var(--fg);background:var(--ink2)}
+.tab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+
+/* ---------- cards ---------- */
+.card{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.card h2{font-size:17px;margin-bottom:4px}
+.card h3{font-size:15px;margin-bottom:10px}
+.sub{color:var(--fg2);font-size:13px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+@media(min-width:720px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- form ---------- */
+label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin:0 0 5px}
+input,select,textarea{
+  width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;
+  padding:9px 11px;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,162,76,.13)}
+textarea{resize:vertical;min-height:72px}
+.field{margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:160px}
+
+.btn{
+  background:var(--gold);color:#2b1d06;border:none;border-radius:8px;
+  padding:9px 16px;font-weight:600;cursor:pointer;font-size:14px;
+}
+.btn:hover{background:var(--gold2)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--ink3);border-color:var(--fg3)}
+.btn.ok{background:var(--green);color:#042b0c}
+.btn.bad{background:var(--red);color:#2b0505}
+.btn.sm{padding:6px 11px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- table / list ---------- */
+.item{
+  border:1px solid var(--line);border-radius:9px;padding:13px 15px;margin-bottom:9px;background:var(--ink3);
+}
+.item .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.item .name{font-weight:600}
+.meta{font-size:12.5px;color:var(--fg2);margin-top:5px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+
+.pill{
+  font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;
+}
+.p-grey{color:var(--fg2);border-color:var(--line);background:var(--ink)}
+.p-blue{color:var(--blue);border-color:#1f4a7a;background:#0d2238}
+.p-green{color:var(--green);border-color:#1d5c29;background:#0c2411}
+.p-red{color:var(--red);border-color:#6e2b28;background:#2d0f0e}
+.p-amber{color:var(--amber);border-color:#6b5316;background:#2a2008}
+.p-gold{color:var(--gold2);border-color:#6b5316;background:#2a2008}
+
+.empty{color:var(--fg3);font-size:14px;padding:22px;text-align:center;border:1px dashed var(--line);border-radius:9px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+
+/* ---------- stats ---------- */
+.stat{background:var(--ink3);border:1px solid var(--line);border-radius:9px;padding:14px}
+.stat .n{font-size:26px;font-weight:700;font-family:ui-serif,Georgia,serif;color:var(--gold2)}
+.stat .l{font-size:12px;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:28px 18px}
+.login{width:100%;max-width:420px}
+.login .hero{text-align:center;margin-bottom:22px}
+.login .hero h1{font-size:27px;margin:14px 0 7px}
+.login .hero p{color:var(--fg2);font-size:14px}
+.bigmark{
+  width:54px;height:54px;border-radius:14px;margin:0 auto;
+  background:linear-gradient(145deg,var(--gold2),var(--gold));
+  display:grid;place-items:center;color:#2b1d06;font-weight:800;font-size:22px;
+}
+.demo-accts{margin-top:16px}
+.acct{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  background:var(--ink3);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px;
+}
+.acct:hover{border-color:var(--gold);background:#202b38}
+.acct .r{font-size:12px;color:var(--fg2)}
+
+/* ---------- misc ---------- */
+.banner{
+  background:#2a2008;border:1px solid #6b5316;color:#e9d9b0;
+  border-radius:9px;padding:11px 14px;font-size:13px;margin-bottom:16px;
+}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+  background:var(--ink3);border:1px solid var(--gold);color:var(--fg);
+  padding:11px 18px;border-radius:9px;z-index:200;font-size:14px;
+  box-shadow:0 10px 36px rgba(0,0,0,.6);max-width:92vw;
+}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.step{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--fg3)}
+.step.done{color:var(--green);border-color:#1d5c29}
+.step.now{color:var(--gold2);border-color:var(--gold)}
+.foot{text-align:center;color:var(--fg3);font-size:12.5px;padding:26px 16px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* =======================================================================
+   Digital Legacy Manager — client-side demo
+   All state persists in localStorage. No backend required.
+   ======================================================================= */
+
+const KEY = 'dlm.v1';
+const ROLES = {
+  owner:     'Asset Owner',
+  beneficiary:'Beneficiary',
+  verifier:  'Verification Authority',
+  executor:  'Legal Executor',
+  admin:     'Administrator'
+};
+
+/* ---------------- state ---------------- */
+let S = null, me = null, tab = null, toastTimer = null;
+
+function uid(p){ return p + Math.random().toString(36).slice(2,8); }
+function now(){ return new Date().toISOString(); }
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+function seed(){
+  const t = now();
+  return {
+    users:[
+      {id:'u1',name:'Aarav Mehta',email:'aarav@dlm.demo',password:'demo1234',role:'owner',status:'active'},
+      {id:'u2',name:'Priya Nair',email:'priya@dlm.demo',password:'demo1234',role:'beneficiary',status:'active'},
+      {id:'u3',name:'Dr. S. Rao',email:'rao@dlm.demo',password:'demo1234',role:'verifier',status:'active'},
+      {id:'u4',name:'Adv. N. Sharma',email:'sharma@dlm.demo',password:'demo1234',role:'executor',status:'active'},
+      {id:'u5',name:'System Admin',email:'admin@dlm.demo',password:'demo1234',role:'admin',status:'active'}
+    ],
+    assets:[
+      {id:'a1',ownerId:'u1',name:'Primary Email Account',type:'Account',note:'Recovery codes and backup address.',
+       content:'provider: mail.example.com\nuser: aarav.mehta\nrecovery: 4821-9930-1174',encrypted:true,createdAt:t},
+      {id:'a2',ownerId:'u1',name:'Property Deed (Scan)',type:'Document',note:'Registered sale deed, 2019.',
+       content:'DEED No. TN/2019/44821\nRegistered: 14 Mar 2019\nSub-Registrar: Coimbatore North',encrypted:true,createdAt:t},
+      {id:'a3',ownerId:'u1',name:'Family Photo Archive',type:'Media',note:'Cloud album, 2004-2024.',
+       content:'album: family-archive-2004-2024\nitems: 8,412\nstorage: cloud-drive',encrypted:false,createdAt:t}
+    ],
+    wills:[
+      {id:'w1',ownerId:'u1',status:'active',condition:'Release all assigned assets to beneficiaries after a verified death certificate is accepted by the Verification Authority and the Legal Executor approves the request.',
+       allocations:[{assetId:'a1',beneficiaryId:'u2'},{assetId:'a2',beneficiaryId:'u2'}],updatedAt:t}
+    ],
+    requests:[],
+    notes:[],
+    audit:[{id:uid('g'),at:t,actor:'system',action:'SEED',detail:'Demo dataset initialised'}]
+  };
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    S = raw ? JSON.parse(raw) : seed();
+    if(!S.users || !S.users.length) S = seed();
+  }catch(e){ S = seed(); }
+  save();
+}
+
+/* ---------------- helpers ---------------- */
+const U   = id => S.users.find(u=>u.id===id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = iso => { const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); };
+const initials = n => n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+function log(action, detail){
+  S.audit.unshift({id:uid('g'),at:now(),actor:me?me.name:'system',action,detail});
+  if(S.audit.length>300) S.audit.length=300;
+}
+function notify(userId, text){
+  S.notes.unshift({id:uid('n'),userId,text,at:now(),read:false});
+}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.innerHTML='<div class="toast">'+esc(msg)+'</div>';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.innerHTML='',2600);
+}
+
+/* Demonstration-only obfuscation. This is NOT encryption and provides
+   no security — it exists to show the "protected asset" state in the UI. */
+function mask(text){
+  try{ return btoa(unescape(encodeURIComponent(text))).replace(/(.{48})/g,'$1\n'); }
+  catch(e){ return '••••••••'; }
+}
+
+function download(filename, text){
+  const b=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},400);
+}
+
+/* ---------------- request status machine ---------------- */
+const FLOW = ['SUBMITTED','CERT_VERIFIED','EXECUTOR_APPROVED','RELEASED'];
+const STATUS_LABEL = {
+  SUBMITTED:'Awaiting certificate verification',
+  CERT_VERIFIED:'Awaiting executor decision',
+  EXECUTOR_APPROVED:'Approved — ready to release',
+  RELEASED:'Assets released',
+  CERT_REJECTED:'Certificate rejected',
+  EXECUTOR_REJECTED:'Rejected by executor'
+};
+const STATUS_PILL = {
+  SUBMITTED:'p-amber', CERT_VERIFIED:'p-blue', EXECUTOR_APPROVED:'p-gold',
+  RELEASED:'p-green', CERT_REJECTED:'p-red', EXECUTOR_REJECTED:'p-red'
+};
+function stepsHTML(st){
+  if(st==='CERT_REJECTED'||st==='EXECUTOR_REJECTED')
+    return '<div class="steps"><span class="step done">Submitted</span><span class="step" style="color:var(--red);border-color:#6e2b28">Rejected</span></div>';
+  const i=FLOW.indexOf(st);
+  const names=['Submitted','Certificate verified','Executor approved','Released'];
+  return '<div class="steps">'+names.map((n,k)=>
+    '<span class="step '+(k<=i?(k===i?'now':'done'):'')+'">'+n+'</span>').join('')+'</div>';
+}
+
+/* =======================================================================
+   LOGIN
+   ======================================================================= */
+function renderLogin(){
+  const app=document.getElementById('app');
+  app.innerHTML = `
+  <div class="login-wrap"><div class="login">
+    <div class="hero">
+      <div class="bigmark">DL</div>
+      <h1>Digital Legacy Manager</h1>
+      <p>Organise, protect and transfer digital assets to authorised beneficiaries.</p>
+    </div>
+    <div class="card">
+      <div class="field"><label>Email</label><input id="le" placeholder="you@dlm.demo" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn" style="width:100%" onclick="doLogin()">Sign in</button>
+      <div id="lerr" class="meta" style="color:var(--red);margin-top:9px"></div>
+      <div class="demo-accts">
+        <label style="margin-top:14px">Demo accounts — click to sign in</label>
+        ${S.users.map(u=>`
+          <button class="acct" onclick="quick('${u.id}')">
+            <span class="avatar">${initials(u.name)}</span>
+            <span><span style="font-weight:600">${esc(u.name)}</span><br><span class="r">${ROLES[u.role]}</span></span>
+            <span class="spacer"></span>
+            ${u.status==='suspended'?'<span class="pill p-red">Suspended</span>':''}
+          </button>`).join('')}
+      </div>
+    </div>
+    <p class="foot">Academic demonstration. Sample data only — do not enter real credentials or personal documents.</p>
+  </div></div>`;
+  const i=document.getElementById('le');
+  i.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+}
+function quick(id){
+  const u=U(id);
+  document.getElementById('le').value=u.email;
+  document.getElementById('lp').value=u.password;
+  doLogin();
+}
+function doLogin(){
+  const e=document.getElementById('le').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const u=S.users.find(x=>x.email.toLowerCase()===e);
+  const err=document.getElementById('lerr');
+  if(!u||u.password!==p){ err.textContent='Incorrect email or password.'; return; }
+  if(u.status==='suspended'){ err.textContent='This account is suspended. Contact the administrator.'; return; }
+  me=u; tab=null;
+  log('LOGIN','User signed in as '+ROLES[u.role]);
+  save(); render();
+}
+function logout(){ log('LOGOUT','User signed out'); save(); me=null; render(); }
+
+/* =======================================================================
+   SHELL
+   ======================================================================= */
+function tabsFor(role){
+  if(role==='owner')       return ['Assets','Digital Will','Requests','Notifications'];
+  if(role==='beneficiary') return ['My Access','Released Assets','Notifications'];
+  if(role==='verifier')    return ['Certificate Queue','Notifications'];
+  if(role==='executor')    return ['Release Queue','Notifications'];
+  return ['Overview','User Accounts','Audit Log'];
+}
+function render(){
+  if(!me){ renderLogin(); return; }
+  const list=tabsFor(me.role);
+  if(!tab || !list.includes(tab)) tab=list[0];
+  const unread=S.notes.filter(n=>n.userId===me.id&&!n.read).length;
+
+  document.getElementById('app').innerHTML = `
+  <div class="topbar">
+    <div class="brand"><span class="mark">DL</span> Digital Legacy Manager</div>
+    <span class="spacer"></span>
+    <div class="who">
+      <span class="avatar">${initials(me.name)}</span>
+      <span>${esc(me.name)}<br><span style="color:var(--fg3)">${ROLES[me.role]}</span></span>
+    </div>
+    <button class="btn ghost sm" onclick="logout()">Sign out</button>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      ${list.map(t=>`<button class="tab ${t===tab?'on':''}" onclick="go('${t}')">${t}${t==='Notifications'&&unread?` <span class="pill p-gold" style="margin-left:4px">${unread}</span>`:''}</button>`).join('')}
+    </div>
+    <div id="view"></div>
+    <p class="foot">Digital Legacy Manager · Academic demonstration · Data stored locally in this browser</p>
+  </div>`;
+  document.getElementById('view').innerHTML = viewHTML();
+}
+function go(t){ tab=t; render(); }
+
+function viewHTML(){
+  switch(tab){
+    case 'Assets':            return ownerAssets();
+    case 'Digital Will':      return ownerWill();
+    case 'Requests':          return ownerRequests();
+    case 'My Access':         return benAccess();
+    case 'Released Assets':   return benReleased();
+    case 'Certificate Queue': return verifierQueue();
+    case 'Release Queue':     return executorQueue();
+    case 'Overview':          return adminOverview();
+    case 'User Accounts':     return adminUsers();
+    case 'Audit Log':         return adminAudit();
+    case 'Notifications':     return notesView();
+    default: return '';
+  }
+}
+
+/* =======================================================================
+   OWNER — assets
+   ======================================================================= */
+let assetQuery='';
+function ownerAssets(){
+  const mine=S.assets.filter(a=>a.ownerId===me.id);
+  const q=assetQuery.trim().toLowerCase();
+  const shown=q?mine.filter(a=>a.name.toLowerCase().includes(q)||a.type.toLowerCase().includes(q)):mine;
+
+  return `
+  <div class="card">
+    <h2>Add a digital asset</h2>
+    <p class="sub">Record an account, document or media item you want preserved and transferred.</p>
+    <div class="row">
+      <div class="field"><label>Asset name</label><input id="an" placeholder="e.g. Insurance policy"></div>
+      <div class="field"><label>Type</label>
+        <select id="at"><option>Account</option><option>Document</option><option>Media</option><option>Financial</option><option>Other</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Description</label><input id="ad" placeholder="Short note about this asset"></div>
+    <div class="field"><label>Stored details</label><textarea id="ac" placeholder="Reference numbers, locations, instructions…"></textarea></div>
+    <div class="row" style="align-items:center">
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--fg2);margin:0">
+        <input type="checkbox" id="ae" checked style="width:auto"> Protect this asset
+      </label>
+      <div style="text-align:right"><button class="btn" onclick="addAsset()">Add asset</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>My digital assets <span class="pill p-grey" style="margin-left:6px">${mine.length}</span></h2>
+    <div class="field" style="margin:12px 0"><input placeholder="Search assets by name or type…" value="${esc(assetQuery)}" oninput="assetQuery=this.value;document.getElementById('view').innerHTML=viewHTML()"></div>
+    ${shown.length? shown.map(assetCard).join('') : '<div class="empty">No assets match this search.</div>'}
+  </div>`;
+}
+function assetCard(a){
+  const will=S.wills.find(w=>w.ownerId===a.ownerId);
+  const al=will&&will.allocations.find(x=>x.assetId===a.id);
+  const ben=al?U(al.beneficiaryId):null;
+  return `
+  <div class="item">
+    <div class="top">
+      <span class="name">${esc(a.name)}</span>
+      <span class="pill p-grey">${esc(a.type)}</span>
+      ${a.encrypted?'<span class="pill p-green">Protected</span>':'<span class="pill p-grey">Plain</span>'}
+      ${ben?`<span class="pill p-blue">→ ${esc(ben.name)}</span>`:''}
+    </div>
+    <div class="meta">${esc(a.note||'No description')} · Added ${fmt(a.createdAt)}</div>
+    <div class="actions">
+      <button class="btn ghost sm" onclick="viewAsset('${a.id}')">View details</button>
+      <button class="btn ghost sm" onclick="toggleEnc('${a.id}')">${a.encrypted?'Unprotect':'Protect'}</button>
+      <button class="btn ghost sm" onclick="delAsset('${a.id}')">Delete</button>
+    </div>
+    <div id="pv-${a.id}" class="hide" style="margin-top:11px">
+      <div class="mono" style="background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-all">${esc(a.encrypted?mask(a.content):a.content)}</div>
+      ${a.encrypted?'<div class="meta" style="color:var(--amber);margin-top:7px">Shown in protected form. Demonstration transform only — not real cryptography.</div>':''}
+    </div>
+  </div>`;
+}
+function viewAsset(id){ const el=document.getElementById('pv-'+id); el.classList.toggle('hide'); }
+function addAsset(){
+  const n=document.getElementById('an').value.trim();
+  const c=document.getElementById('ac').value.trim();
+  if(!n){ toast('Asset name is required'); return; }
+  if(!c){ toast('Stored details are required'); return; }
+  S.assets.push({id:uid('a'),ownerId:me.id,name:n,type:document.getElementById('at').value,
+    note:document.getElementById('ad').value.trim(),content:c,
+    encrypted:document.getElementById('ae').checked,createdAt:now()});
+  log('ASSET_CREATE','Added asset "'+n+'"');
+  save(); render(); toast('Asset added');
+}
+function toggleEnc(id){
+  const a=S.assets.find(x=>x.id===id); a.encrypted=!a.encrypted;
+  log('ASSET_PROTECT','Asset "'+a.name+'" set to '+(a.encrypted?'protected':'plain'));
+  save(); render();
+}
+function delAsset(id){
+  const a=S.assets.find(x=>x.id===id);
+  if(!confirm('Delete "'+a.name+'"? This also removes it from your will.')) return;
+  S.assets=S.assets.filter(x=>x.id!==id);
+  S.wills.forEach(w=>w.allocations=w.allocations.filter(x=>x.assetId!==id));
+  log('ASSET_DELETE','Deleted asset "'+a.name+'"');
+  save(); render(); toast('Asset deleted');
+}
+
+/* =======================================================================
+   OWNER — will
+   ======================================================================= */
+function ownerWill(){
+  let w=S.wills.find(x=>x.ownerId===me.id);
+  const mine=S.assets.filter(a=>a.ownerId===me.id);
+  const bens=S.users.filter(u=>u.role==='beneficiary'&&u.status==='active');
+
+  if(!w) return `
+  <div class="card">
+    <h2>Create your digital will</h2>
+    <p class="sub">A digital will records which assets go to which beneficiary, and the condition under which they are released.</p>
+    <div class="field"><label>Transfer condition</label>
+      <textarea id="wc">Release assigned assets once a death certificate is verified by the Verification Authority and the Legal Executor approves the request.</textarea></div>
+    <button class="btn" onclick="createWill()">Create digital will</button>
+  </div>`;
+
+  return `
+  <div class="card">
+    <h2>Digital will <span class="pill ${w.status==='active'?'p-green':'p-amber'}" style="margin-left:6px">${w.status==='active'?'Active':'Draft'}</span></h2>
+    <p class="sub">Last updated ${fmt(w.updatedAt)}</p>
+    <div class="field"><label>Transfer condition</label><textarea id="wc">${esc(w.condition)}</textarea></div>
+    <div class="row">
+      <div><button class="btn" onclick="saveWill()">Save changes</button></div>
+      <div style="text-align:right"><button class="btn ghost" onclick="toggleWill()">${w.status==='active'?'Move to draft':'Activate will'}</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Assign beneficiaries</h2>
+    <p class="sub">Each asset may be assigned to one beneficiary. Unassigned assets are never released.</p>
+    ${mine.length? mine.map(a=>{
+      const al=w.allocations.find(x=>x.assetId===a.id);
+      return `<div class="item">
+        <div class="top"><span class="name">${esc(a.name)}</span><span class="pill p-grey">${esc(a.type)}</span></div>
+        <div class="row" style="margin-top:10px">
+          <select onchange="assign('${a.id}',this.value)">
+            <option value="">— Not assigned —</option>
+            ${bens.map(b=>`<option value="${b.id}" ${al&&al.beneficiaryId===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty">Add assets first, then assign them here.</div>'}
+  </div>`;
+}
+function createWill(){
+  S.wills.push({id:uid('w'),ownerId:me.id,status:'active',
+    condition:document.getElementById('wc').value.trim(),allocations:[],updatedAt:now()});
+  log('WILL_CREATE','Digital will created');
+  save(); render(); toast('Digital will created');
+}
+function saveWill(){
+  const w=S.wills.find(x=>x.ownerId===me.id);
+  w.condition=document.getElementById('wc').value.trim(); w.updatedAt=now();
+  log('WILL_UPDATE','Transfer condition updated');
+  save(); render(); toast('Will updated');
+}
+function toggleWill(){
+  const w=S.wills.find(x=>x.ownerId===me.id);
+  w.status=w.status==='active'?'draft':'active'; w.updatedAt=now();
+  log('WILL_STATUS','Will set to '+w.status);
+  save(); render();
+}
+function assign(assetId,benId){
+  const w=S.wills.find(x=>x.ownerId===me.id);
+  w.allocations=w.allocations.filter(x=>x.assetId!==assetId);
+  if(benId) w.allocations.push({assetId,beneficiaryId:benId});
+  w.updatedAt=now();
+  const a=S.assets.find(x=>x.id===assetId);
+  log('WILL_ASSIGN','"'+a.name+'" → '+(benId?U(benId).name:'unassigned'));
+  save(); render(); toast('Beneficiary updated');
+}
+
+/* =======================================================================
+   OWNER — requests against their estate
+   ======================================================================= */
+function ownerRequests(){
+  const rs=S.requests.filter(r=>r.ownerId===me.id);
+  return `<div class="card">
+    <h2>Access requests on my estate</h2>
+    <p class="sub">Requests raised by beneficiaries, and their progress through verification and legal approval.</p>
+    ${rs.length? rs.map(r=>requestCard(r,'owner')).join('') : '<div class="empty">No access requests have been raised.</div>'}
+  </div>`;
+}
+
+function requestCard(r, as){
+  const ben=U(r.beneficiaryId), own=U(r.ownerId);
+  return `<div class="item">
+    <div class="top">
+      <span class="name">${esc(ben.name)} → estate of ${esc(own.name)}</span>
+      <span class="pill ${STATUS_PILL[r.status]}">${STATUS_LABEL[r.status]}</span>
+    </div>
+    <div class="meta">Request ${r.id} · Raised ${fmt(r.createdAt)}</div>
+    ${stepsHTML(r.status)}
+    <div class="meta" style="margin-top:9px">
+      <strong>Certificate:</strong> ${esc(r.certRef||'—')}
+      ${r.certBy?` · verified by ${esc(r.certBy)}`:''}
+      ${r.certNote?`<br><em>${esc(r.certNote)}</em>`:''}
+    </div>
+    ${r.legalRef?`<div class="meta"><strong>Legal document:</strong> ${esc(r.legalRef)}</div>`:''}
+    ${r.execBy?`<div class="meta"><strong>Executor:</strong> ${esc(r.execBy)}${r.execNote?` — ${esc(r.execNote)}`:''}</div>`:''}
+    ${as==='verifier'&&r.status==='SUBMITTED'?`
+      <div class="field" style="margin-top:11px"><label>Verification note</label><input id="vn-${r.id}" placeholder="Record of checks performed"></div>
+      <div class="actions">
+        <button class="btn ok sm" onclick="certDecide('${r.id}',true)">Verify certificate</button>
+        <button class="btn bad sm" onclick="certDecide('${r.id}',false)">Reject</button>
+      </div>`:''}
+    ${as==='executor'&&r.status==='CERT_VERIFIED'?`
+      <div class="field" style="margin-top:11px"><label>Legal document reference</label><input id="lr-${r.id}" placeholder="e.g. Probate ref. PR/2026/118"></div>
+      <div class="field"><label>Decision note</label><input id="en-${r.id}" placeholder="Reason for approval or rejection"></div>
+      <div class="actions">
+        <button class="btn ok sm" onclick="execDecide('${r.id}',true)">Approve release</button>
+        <button class="btn bad sm" onclick="execDecide('${r.id}',false)">Reject</button>
+      </div>`:''}
+    ${as==='executor'&&r.status==='EXECUTOR_APPROVED'?`
+      <div class="actions"><button class="btn sm" onclick="release('${r.id}')">Release assets to beneficiary</button></div>`:''}
+  </div>`;
+}
+
+/* =======================================================================
+   BENEFICIARY
+   ======================================================================= */
+function benAccess(){
+  const owners=S.users.filter(u=>u.role==='owner');
+  const mine=S.requests.filter(r=>r.beneficiaryId===me.id);
+  return `
+  <div class="card">
+    <h2>Request access to an estate</h2>
+    <p class="sub">Submit a death-certificate reference. It is checked by the Verification Authority, then by the Legal Executor, before any asset is released.</p>
+    <div class="row">
+      <div class="field"><label>Estate owner</label>
+        <select id="ro">${owners.map(o=>`<option value="${o.id}">${esc(o.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Death certificate reference</label><input id="rc" placeholder="e.g. DC/TN/2026/00417"></div>
+    </div>
+    <button class="btn" onclick="raise()">Submit request</button>
+  </div>
+  <div class="card">
+    <h2>My requests</h2>
+    ${mine.length? mine.map(r=>requestCard(r,'ben')).join('') : '<div class="empty">You have not raised any access request yet.</div>'}
+  </div>`;
+}
+function raise(){
+  const ownerId=document.getElementById('ro').value;
+  const ref=document.getElementById('rc').value.trim();
+  if(!ref){ toast('Certificate reference is required'); return; }
+  const dup=S.requests.find(r=>r.beneficiaryId===me.id&&r.ownerId===ownerId&&!['CERT_REJECTED','EXECUTOR_REJECTED','RELEASED'].includes(r.status));
+  if(dup){ toast('You already have an open request for this estate'); return; }
+  const r={id:uid('r').toUpperCase(),ownerId,beneficiaryId:me.id,createdAt:now(),status:'SUBMITTED',certRef:ref};
+  S.requests.unshift(r);
+  log('REQUEST_CREATE','Access requested for estate of '+U(ownerId).name);
+  S.users.filter(u=>u.role==='verifier').forEach(v=>notify(v.id,'New access request '+r.id+' awaiting certificate verification.'));
+  notify(ownerId,'Beneficiary '+me.name+' raised access request '+r.id+'.');
+  save(); render(); toast('Request submitted');
+}
+function benReleased(){
+  const rel=S.requests.filter(r=>r.beneficiaryId===me.id&&r.status==='RELEASED');
+  if(!rel.length) return '<div class="card"><h2>Released assets</h2><div class="empty">No assets have been released to you yet.</div></div>';
+  return rel.map(r=>{
+    const w=S.wills.find(x=>x.ownerId===r.ownerId);
+    const mine=(w?w.allocations:[]).filter(a=>a.beneficiaryId===me.id)
+      .map(a=>S.assets.find(x=>x.id===a.assetId)).filter(Boolean);
+    return `<div class="card">
+      <h2>Estate of ${esc(U(r.ownerId).name)}</h2>
+      <p class="sub">Released ${fmt(r.releasedAt)} · Request ${r.id}</p>
+      ${mine.length? mine.map(a=>`
+        <div class="item">
+          <div class="top"><span class="name">${esc(a.name)}</span><span class="pill p-grey">${esc(a.type)}</span><span class="pill p-green">Released</span></div>
+          <div class="meta">${esc(a.note||'')}</div>
+          <div class="mono" style="background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:11px;margin-top:10px;white-space:pre-wrap">${esc(a.content)}</div>
+          <div class="actions"><button class="btn ghost sm" onclick="dl('${a.id}')">Download</button></div>
+        </div>`).join('') : '<div class="empty">No assets were assigned to you in this will.</div>'}
+    </div>`;
+  }).join('');
+}
+function dl(id){
+  const a=S.assets.find(x=>x.id===id);
+  download(a.name.replace(/[^a-z0-9]+/gi,'_')+'.txt',
+    'DIGITAL LEGACY MANAGER — RELEASED ASSET\n'+'='.repeat(46)+
+    '\nAsset: '+a.name+'\nType: '+a.type+'\nReleased to: '+me.name+'\nDate: '+fmt(now())+
+    '\n\n'+a.content+'\n');
+  log('ASSET_DOWNLOAD','Downloaded released asset "'+a.name+'"');
+  save(); toast('Download started');
+}
+
+/* =======================================================================
+   VERIFIER / EXECUTOR
+   ======================================================================= */
+function verifierQueue(){
+  const pend=S.requests.filter(r=>r.status==='SUBMITTED');
+  const done=S.requests.filter(r=>r.status!=='SUBMITTED');
+  return `
+  <div class="card">
+    <h2>Pending certificate verification <span class="pill p-amber" style="margin-left:6px">${pend.length}</span></h2>
+    <p class="sub">Confirm the submitted death certificate before the request proceeds to the Legal Executor.</p>
+    ${pend.length? pend.map(r=>requestCard(r,'verifier')).join('') : '<div class="empty">Nothing awaiting verification.</div>'}
+  </div>
+  <div class="card"><h2>Processed</h2>
+    ${done.length? done.map(r=>requestCard(r,'v2')).join('') : '<div class="empty">No processed requests.</div>'}
+  </div>`;
+}
+function certDecide(id, ok){
+  const r=S.requests.find(x=>x.id===id);
+  const note=(document.getElementById('vn-'+id)||{}).value||'';
+  r.certBy=me.name; r.certNote=note.trim();
+  r.status = ok?'CERT_VERIFIED':'CERT_REJECTED';
+  log(ok?'CERT_VERIFIED':'CERT_REJECTED','Request '+id+' — '+(note||'no note'));
+  notify(r.beneficiaryId, ok?('Certificate verified for request '+id+'. Awaiting executor.')
+                            :('Certificate rejected for request '+id+'.'));
+  notify(r.ownerId,'Request '+id+' certificate '+(ok?'verified':'rejected')+'.');
+  if(ok) S.users.filter(u=>u.role==='executor').forEach(x=>notify(x.id,'Request '+id+' is ready for your decision.'));
+  save(); render(); toast(ok?'Certificate verified':'Certificate rejected');
+}
+function executorQueue(){
+  const pend=S.requests.filter(r=>r.status==='CERT_VERIFIED'||r.status==='EXECUTOR_APPROVED');
+  const done=S.requests.filter(r=>!['CERT_VERIFIED','EXECUTOR_APPROVED'].includes(r.status));
+  return `
+  <div class="card">
+    <h2>Awaiting legal decision <span class="pill p-blue" style="margin-left:6px">${pend.length}</span></h2>
+    <p class="sub">Verify supporting legal documents, then approve or reject the release of assets.</p>
+    ${pend.length? pend.map(r=>requestCard(r,'executor')).join('') : '<div class="empty">No requests awaiting a decision.</div>'}
+  </div>
+  <div class="card"><h2>Other requests</h2>
+    ${done.length? done.map(r=>requestCard(r,'e2')).join('') : '<div class="empty">Nothing else on file.</div>'}
+  </div>`;
+}
+function execDecide(id, ok){
+  const r=S.requests.find(x=>x.id===id);
+  const lr=(document.getElementById('lr-'+id)||{}).value||'';
+  const en=(document.getElementById('en-'+id)||{}).value||'';
+  if(ok && !lr.trim()){ toast('A legal document reference is required to approve'); return; }
+  r.legalRef=lr.trim(); r.execBy=me.name; r.execNote=en.trim();
+  r.status = ok?'EXECUTOR_APPROVED':'EXECUTOR_REJECTED';
+  log(ok?'EXEC_APPROVED':'EXEC_REJECTED','Request '+id+' — '+(en||'no note'));
+  notify(r.beneficiaryId, ok?('Request '+id+' approved by the executor.'):('Request '+id+' was rejected.'));
+  notify(r.ownerId,'Request '+id+' '+(ok?'approved':'rejected')+' by executor.');
+  save(); render(); toast(ok?'Release approved':'Request rejected');
+}
+function release(id){
+  const r=S.requests.find(x=>x.id===id);
+  r.status='RELEASED'; r.releasedAt=now();
+  const w=S.wills.find(x=>x.ownerId===r.ownerId);
+  const n=(w?w.allocations:[]).filter(a=>a.beneficiaryId===r.beneficiaryId).length;
+  log('ASSETS_RELEASED','Request '+id+' — '+n+' asset(s) released');
+  notify(r.beneficiaryId,n+' asset(s) have been released to you. Open "Released Assets".');
+  notify(r.ownerId,'Assets released for request '+id+'.');
+  save(); render(); toast(n+' asset(s) released');
+}
+
+/* =======================================================================
+   ADMIN
+   ======================================================================= */
+function adminOverview(){
+  const open=S.requests.filter(r=>['SUBMITTED','CERT_VERIFIED','EXECUTOR_APPROVED'].includes(r.status)).length;
+  return `
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="stat"><div class="n">${S.users.length}</div><div class="l">Accounts</div></div>
+    <div class="stat"><div class="n">${S.assets.length}</div><div class="l">Digital assets</div></div>
+    <div class="stat"><div class="n">${S.wills.length}</div><div class="l">Digital wills</div></div>
+    <div class="stat"><div class="n">${S.requests.length}</div><div class="l">Total requests</div></div>
+    <div class="stat"><div class="n">${open}</div><div class="l">In progress</div></div>
+    <div class="stat"><div class="n">${S.requests.filter(r=>r.status==='RELEASED').length}</div><div class="l">Released</div></div>
+  </div>
+  <div class="card">
+    <h2>All access requests</h2>
+    ${S.requests.length? S.requests.map(r=>requestCard(r,'admin')).join('') : '<div class="empty">No requests recorded.</div>'}
+  </div>
+  <div class="card">
+    <h2>Reset demonstration data</h2>
+    <p class="sub">Restores the original sample accounts, assets and will. Useful before a presentation.</p>
+    <button class="btn ghost" onclick="resetAll()">Reset to seed data</button>
+  </div>`;
+}
+function resetAll(){
+  if(!confirm('Reset all data back to the original demo state?')) return;
+  S=seed(); save(); me=null; render(); toast('Demo data reset');
+}
+function adminUsers(){
+  return `
+  <div class="card">
+    <h2>Create account</h2>
+    <div class="row">
+      <div class="field"><label>Full name</label><input id="nn" placeholder="Name"></div>
+      <div class="field"><label>Email</label><input id="ne" placeholder="name@dlm.demo"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Role</label><select id="nr">${Object.keys(ROLES).map(r=>`<option value="${r}">${ROLES[r]}</option>`).join('')}</select></div>
+      <div class="field"><label>Temporary password</label><input id="np" value="demo1234"></div>
+    </div>
+    <button class="btn" onclick="addUser()">Create account</button>
+  </div>
+  <div class="card">
+    <h2>User accounts</h2>
+    ${S.users.map(u=>`
+      <div class="item">
+        <div class="top">
+          <span class="avatar">${initials(u.name)}</span>
+          <span class="name">${esc(u.name)}</span>
+          <span class="pill p-grey">${ROLES[u.role]}</span>
+          <span class="pill ${u.status==='active'?'p-green':'p-red'}">${u.status==='active'?'Active':'Suspended'}</span>
+        </div>
+        <div class="meta">${esc(u.email)}</div>
+        ${u.id!==me.id?`<div class="actions">
+          <button class="btn ghost sm" onclick="susp('${u.id}')">${u.status==='active'?'Suspend':'Restore'}</button>
+        </div>`:'<div class="meta" style="color:var(--fg3)">This is your own account.</div>'}
+      </div>`).join('')}
+  </div>`;
+}
+function addUser(){
+  const n=document.getElementById('nn').value.trim();
+  const e=document.getElementById('ne').value.trim().toLowerCase();
+  const p=document.getElementById('np').value;
+  if(!n||!e||!p){ toast('All fields are required'); return; }
+  if(S.users.some(u=>u.email.toLowerCase()===e)){ toast('That email already exists'); return; }
+  S.users.push({id:uid('u'),name:n,email:e,password:p,role:document.getElementById('nr').value,status:'active'});
+  log('USER_CREATE','Created account '+e);
+  save(); render(); toast('Account created');
+}
+function susp(id){
+  const u=U(id); u.status=u.status==='active'?'suspended':'active';
+  log(u.status==='active'?'USER_RESTORE':'USER_SUSPEND',u.email);
+  notify(u.id,'Your account was '+(u.status==='active'?'restored':'suspended')+' by an administrator.');
+  save(); render(); toast('Account '+u.status);
+}
+function adminAudit(){
+  return `<div class="card">
+    <h2>Audit log <span class="pill p-grey" style="margin-left:6px">${S.audit.length}</span></h2>
+    <p class="sub">Chronological record of significant system activity.</p>
+    <div class="actions" style="margin:0 0 14px">
+      <button class="btn ghost sm" onclick="exportAudit()">Export as text</button>
+    </div>
+    ${S.audit.map(g=>`
+      <div class="item" style="padding:10px 13px">
+        <div class="top">
+          <span class="pill p-blue">${esc(g.action)}</span>
+          <span class="meta" style="margin:0">${esc(g.actor)}</span>
+          <span class="spacer"></span>
+          <span class="meta mono" style="margin:0">${fmt(g.at)}</span>
+        </div>
+        <div class="meta">${esc(g.detail)}</div>
+      </div>`).join('')}
+  </div>`;
+}
+function exportAudit(){
+  download('dlm_audit_log.txt',
+    'DIGITAL LEGACY MANAGER — AUDIT LOG\nGenerated '+fmt(now())+'\n'+'='.repeat(60)+'\n\n'+
+    S.audit.map(g=>fmt(g.at)+'  ['+g.action+']  '+g.actor+'\n    '+g.detail).join('\n\n')+'\n');
+  toast('Audit log exported');
+}
+
+/* =======================================================================
+   NOTIFICATIONS
+   ======================================================================= */
+function notesView(){
+  const mine=S.notes.filter(n=>n.userId===me.id);
+  mine.forEach(n=>n.read=true); save();
+  return `<div class="card">
+    <h2>Notifications</h2>
+    <p class="sub">Alerts raised by the system as requests move through verification and release.</p>
+    ${mine.length? mine.map(n=>`
+      <div class="item" style="padding:11px 14px">
+        <div>${esc(n.text)}</div>
+        <div class="meta mono">${fmt(n.at)}</div>
+      </div>`).join('') : '<div class="empty">No notifications.</div>'}
+  </div>`;
+}
+
+/* ---------------- boot ---------------- */
+load();
+render();
+</script>
+</body>
+</html>
