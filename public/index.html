@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital Legacy Manager</title>
+<style>
+:root{
+  --ink:#0d1117; --ink2:#141b24; --ink3:#1c2531; --line:#2a3442;
+  --fg:#e6edf3; --fg2:#9aa7b4; --fg3:#6b7a8c;
+  --gold:#d4a24c; --gold2:#f0c27b;
+  --green:#3fb950; --red:#f85149; --blue:#58a6ff; --amber:#d29922;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--fg);min-height:100vh;
+  font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:ui-serif,Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--ink2);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:ui-serif,Georgia,serif;font-size:17px;font-weight:600}
+.brand .mark{width:28px;height:28px;border-radius:7px;flex:none;background:linear-gradient(145deg,var(--gold2),var(--gold));
+  display:grid;place-items:center;color:#2b1d06;font-weight:800;font-size:13px;font-family:ui-sans-serif,system-ui,sans-serif}
+.spacer{flex:1}
+.who{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg2)}
+.avatar{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--ink3);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--gold2)}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 70px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:9px 14px;cursor:pointer;
+  color:var(--fg2);font-size:14px;border-radius:6px 6px 0 0}
+.tab:hover{color:var(--fg);background:var(--ink2)}
+.tab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.card{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.card h2{font-size:17px;margin-bottom:4px}
+.sub{color:var(--fg2);font-size:13px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+@media(min-width:720px){.g3{grid-template-columns:repeat(3,1fr)}}
+label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin:0 0 5px}
+input,select,textarea{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,162,76,.13)}
+textarea{resize:vertical;min-height:72px}
+.field{margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:160px}
+.btn{background:var(--gold);color:#2b1d06;border:none;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:14px}
+.btn:hover{background:var(--gold2)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--ink3);border-color:var(--fg3)}
+.btn.ok{background:var(--green);color:#042b0c}
+.btn.bad{background:var(--red);color:#2b0505}
+.btn.sm{padding:6px 11px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.item{border:1px solid var(--line);border-radius:9px;padding:13px 15px;margin-bottom:9px;background:var(--ink3)}
+.item .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.item .name{font-weight:600}
+.meta{font-size:12.5px;color:var(--fg2);margin-top:5px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.pill{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap}
+.p-grey{color:var(--fg2);border-color:var(--line);background:var(--ink)}
+.p-blue{color:var(--blue);border-color:#1f4a7a;background:#0d2238}
+.p-green{color:var(--green);border-color:#1d5c29;background:#0c2411}
+.p-red{color:var(--red);border-color:#6e2b28;background:#2d0f0e}
+.p-amber{color:var(--amber);border-color:#6b5316;background:#2a2008}
+.p-gold{color:var(--gold2);border-color:#6b5316;background:#2a2008}
+.empty{color:var(--fg3);font-size:14px;padding:22px;text-align:center;border:1px dashed var(--line);border-radius:9px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.stat{background:var(--ink3);border:1px solid var(--line);border-radius:9px;padding:14px}
+.stat .n{font-size:26px;font-weight:700;font-family:ui-serif,Georgia,serif;color:var(--gold2)}
+.stat .l{font-size:12px;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:28px 18px}
+.login{width:100%;max-width:420px}
+.login .hero{text-align:center;margin-bottom:22px}
+.login .hero h1{font-size:27px;margin:14px 0 7px}
+.login .hero p{color:var(--fg2);font-size:14px}
+.bigmark{width:54px;height:54px;border-radius:14px;margin:0 auto;background:linear-gradient(145deg,var(--gold2),var(--gold));
+  display:grid;place-items:center;color:#2b1d06;font-weight:800;font-size:22px}
+.acct{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  background:var(--ink3);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px}
+.acct:hover{border-color:var(--gold);background:#202b38}
+.acct .r{font-size:12px;color:var(--fg2)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink3);
+  border:1px solid var(--gold);color:var(--fg);padding:11px 18px;border-radius:9px;z-index:200;font-size:14px;
+  box-shadow:0 10px 36px rgba(0,0,0,.6);max-width:92vw}
+.toast.err{border-color:var(--red)}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.step{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--fg3)}
+.step.done{color:var(--green);border-color:#1d5c29}
+.step.now{color:var(--gold2);border-color:var(--gold)}
+.foot{text-align:center;color:var(--fg3);font-size:12.5px;padding:26px 16px}
+.hide{display:none!important}
+.enc{background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-all}
+</style>
+</head>
+<body>
+<div id="app"><div class="login-wrap"><div class="meta">Connecting to server…</div></div></div>
+<div id="toast"></div>
+
+<script>
+/* ===================================================================
+   Frontend. All data comes from the backend over HTTP; this file
+   holds no business rules — the server enforces every role check.
+   =================================================================== */
+const ROLES={owner:'Asset Owner',beneficiary:'Beneficiary',verifier:'Verification Authority',
+             executor:'Legal Executor',admin:'Administrator'};
+const DEMO=[['aarav@dlm.demo','Aarav Mehta','owner'],['priya@dlm.demo','Priya Nair','beneficiary'],
+            ['rao@dlm.demo','Dr. S. Rao','verifier'],['sharma@dlm.demo','Adv. N. Sharma','executor'],
+            ['admin@dlm.demo','System Admin','admin']];
+
+let me=null, tab=null, backend='', cache={}, toastT=null;
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=i=>{const d=new Date(i);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})};
+const initials=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+function toast(msg,bad){
+  document.getElementById('toast').innerHTML='<div class="toast'+(bad?' err':'')+'">'+esc(msg)+'</div>';
+  clearTimeout(toastT); toastT=setTimeout(()=>document.getElementById('toast').innerHTML='',3200);
+}
+async function api(pathname,opts={}){
+  const r=await fetch(pathname,{credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},...opts,
+    body:opts.body?JSON.stringify(opts.body):undefined});
+  let d={}; try{ d=await r.json(); }catch(e){}
+  if(!r.ok){ const e=new Error(d.error||('Request failed ('+r.status+')')); e.status=r.status; throw e; }
+  return d;
+}
+function download(fn,txt){
+  const b=new Blob([txt],{type:'text/plain'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},400);
+}
+
+/* ---------------- status machine ---------------- */
+const FLOW=['SUBMITTED','CERT_VERIFIED','EXECUTOR_APPROVED','RELEASED'];
+const SL={SUBMITTED:'Awaiting certificate verification',CERT_VERIFIED:'Awaiting executor decision',
+  EXECUTOR_APPROVED:'Approved — ready to release',RELEASED:'Assets released',
+  CERT_REJECTED:'Certificate rejected',EXECUTOR_REJECTED:'Rejected by executor'};
+const SP={SUBMITTED:'p-amber',CERT_VERIFIED:'p-blue',EXECUTOR_APPROVED:'p-gold',
+  RELEASED:'p-green',CERT_REJECTED:'p-red',EXECUTOR_REJECTED:'p-red'};
+function steps(st){
+  if(st==='CERT_REJECTED'||st==='EXECUTOR_REJECTED')
+    return '<div class="steps"><span class="step done">Submitted</span><span class="step" style="color:var(--red);border-color:#6e2b28">Rejected</span></div>';
+  const i=FLOW.indexOf(st),n=['Submitted','Certificate verified','Executor approved','Released'];
+  return '<div class="steps">'+n.map((x,k)=>'<span class="step '+(k<=i?(k===i?'now':'done'):'')+'">'+x+'</span>').join('')+'</div>';
+}
+
+/* ===================================================================
+   LOGIN
+   =================================================================== */
+function renderLogin(){
+  document.getElementById('app').innerHTML=`
+  <div class="login-wrap"><div class="login">
+    <div class="hero"><div class="bigmark">DL</div>
+      <h1>Digital Legacy Manager</h1>
+      <p>Organise, protect and transfer digital assets to authorised beneficiaries.</p></div>
+    <div class="card">
+      <div class="field"><label>Email</label><input id="le" autocomplete="username" placeholder="you@dlm.demo"></div>
+      <div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn" style="width:100%" id="lb" onclick="doLogin()">Sign in</button>
+      <div id="lerr" class="meta" style="color:var(--red);min-height:18px"></div>
+      <label style="margin-top:12px">Demo accounts — click to sign in</label>
+      ${DEMO.map(([e,n,r])=>`<button class="acct" onclick="quick('${e}')">
+        <span class="avatar">${initials(n)}</span>
+        <span><span style="font-weight:600">${esc(n)}</span><br><span class="r">${ROLES[r]}</span></span></button>`).join('')}
+    </div>
+    <p class="foot">Storage: ${esc(backend)}<br>Academic project — sample data only.</p>
+  </div></div>`;
+  ['le','lp'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()}));
+}
+function quick(email){
+  document.getElementById('le').value=email;
+  document.getElementById('lp').value='demo1234';
+  doLogin();
+}
+async function doLogin(){
+  const b=document.getElementById('lb'), err=document.getElementById('lerr');
+  b.disabled=true; err.textContent='';
+  try{
+    const d=await api('/api/auth/login',{method:'POST',body:{
+      email:document.getElementById('le').value.trim(),
+      password:document.getElementById('lp').value}});
+    me=d.user; tab=null; await render();
+  }catch(e){ err.textContent=e.message; b.disabled=false; }
+}
+async function logout(){ await api('/api/auth/logout',{method:'POST'}); me=null; renderLogin(); }
+
+/* ===================================================================
+   SHELL
+   =================================================================== */
+function tabsFor(r){
+  if(r==='owner')       return ['Assets','Digital Will','Requests','Notifications'];
+  if(r==='beneficiary') return ['My Access','Released Assets','Notifications'];
+  if(r==='verifier')    return ['Certificate Queue','Notifications'];
+  if(r==='executor')    return ['Release Queue','Notifications'];
+  return ['Overview','User Accounts','Audit Log'];
+}
+async function render(){
+  if(!me){ renderLogin(); return; }
+  const list=tabsFor(me.role);
+  if(!tab||!list.includes(tab)) tab=list[0];
+  let unread=0;
+  try{ unread=(await api('/api/notifications')).notifications.filter(n=>!n.readFlag).length; }catch(e){}
+  document.getElementById('app').innerHTML=`
+  <div class="topbar">
+    <div class="brand"><span class="mark">DL</span> Digital Legacy Manager</div>
+    <span class="spacer"></span>
+    <div class="who"><span class="avatar">${initials(me.name)}</span>
+      <span>${esc(me.name)}<br><span style="color:var(--fg3)">${ROLES[me.role]}</span></span></div>
+    <button class="btn ghost sm" onclick="logout()">Sign out</button>
+  </div>
+  <div class="wrap">
+    <div class="tabs">${list.map(t=>`<button class="tab ${t===tab?'on':''}" onclick="go('${t}')">${t}${t==='Notifications'&&unread?` <span class="pill p-gold" style="margin-left:4px">${unread}</span>`:''}</button>`).join('')}</div>
+    <div id="view"><div class="meta">Loading…</div></div>
+    <p class="foot">Digital Legacy Manager · ${esc(backend)} · assets encrypted with AES-256-GCM</p>
+  </div>`;
+  await draw();
+}
+function go(t){ tab=t; render(); }
+
+async function draw(){
+  const v=document.getElementById('view');
+  try{
+    let html='';
+    switch(tab){
+      case 'Assets':            html=await ownerAssets(); break;
+      case 'Digital Will':      html=await ownerWill(); break;
+      case 'Requests':          html=await listRequests('owner'); break;
+      case 'My Access':         html=await benAccess(); break;
+      case 'Released Assets':   html=await benReleased(); break;
+      case 'Certificate Queue': html=await listRequests('verifier'); break;
+      case 'Release Queue':     html=await listRequests('executor'); break;
+      case 'Overview':          html=await adminOverview(); break;
+      case 'User Accounts':     html=await adminUsers(); break;
+      case 'Audit Log':         html=await adminAudit(); break;
+      case 'Notifications':     html=await notesView(); break;
+    }
+    v.innerHTML=html;
+  }catch(e){
+    if(e.status===401){ me=null; renderLogin(); return; }
+    v.innerHTML='<div class="card"><h2>Could not load</h2><p class="sub">'+esc(e.message)+'</p></div>';
+  }
+}
+
+/* ===================================================================
+   OWNER
+   =================================================================== */
+async function ownerAssets(){
+  const {assets}=await api('/api/assets');
+  const {users:bens}=await api('/api/beneficiaries');
+  cache.bens=bens;
+  return `
+  <div class="card">
+    <h2>Add a digital asset</h2>
+    <p class="sub">Contents are encrypted with AES-256-GCM on the server before being written to storage.</p>
+    <div class="row">
+      <div class="field"><label>Asset name</label><input id="an" placeholder="e.g. Insurance policy"></div>
+      <div class="field"><label>Type</label><select id="at">
+        <option>Account</option><option>Document</option><option>Media</option><option>Financial</option><option>Other</option></select></div>
+    </div>
+    <div class="field"><label>Description</label><input id="ad" placeholder="Short note about this asset"></div>
+    <div class="field"><label>Stored details</label><textarea id="ac" placeholder="Reference numbers, locations, instructions…"></textarea></div>
+    <button class="btn" onclick="addAsset()">Add asset</button>
+  </div>
+  <div class="card">
+    <h2>My digital assets <span class="pill p-grey" style="margin-left:6px">${assets.length}</span></h2>
+    ${assets.length?assets.map(a=>{
+      const b=bens.find(x=>x.id===a.beneficiaryId);
+      return `<div class="item">
+        <div class="top"><span class="name">${esc(a.name)}</span>
+          <span class="pill p-grey">${esc(a.type)}</span>
+          <span class="pill p-green">Encrypted</span>
+          ${b?`<span class="pill p-blue">→ ${esc(b.name)}</span>`:''}</div>
+        <div class="meta">${esc(a.note||'No description')} · Added ${fmt(a.createdAt)}</div>
+        <div class="actions">
+          <button class="btn ghost sm" onclick="reveal('${a.id}')">Decrypt &amp; view</button>
+          <button class="btn ghost sm" onclick="delAsset('${a.id}','${esc(a.name)}')">Delete</button></div>
+        <div id="pv-${a.id}" class="hide" style="margin-top:11px"></div>
+      </div>`}).join(''):'<div class="empty">No assets yet. Add your first one above.</div>'}
+  </div>`;
+}
+async function reveal(id){
+  const el=document.getElementById('pv-'+id);
+  if(!el.classList.contains('hide')){ el.classList.add('hide'); return; }
+  el.classList.remove('hide');
+  el.innerHTML='<div class="meta">Requesting decryption from server…</div>';
+  try{
+    const {content}=await api('/api/assets/'+id+'/content');
+    el.innerHTML='<div class="enc mono">'+esc(content)+'</div>'+
+      '<div class="meta" style="color:var(--green)">Decrypted server-side after authorisation check.</div>';
+  }catch(e){ el.innerHTML='<div class="meta" style="color:var(--red)">'+esc(e.message)+'</div>'; }
+}
+async function addAsset(){
+  try{
+    await api('/api/assets',{method:'POST',body:{
+      name:document.getElementById('an').value,type:document.getElementById('at').value,
+      note:document.getElementById('ad').value,content:document.getElementById('ac').value}});
+    toast('Asset added and encrypted'); draw();
+  }catch(e){ toast(e.message,true); }
+}
+async function delAsset(id,name){
+  if(!confirm('Delete "'+name+'"? This also removes it from your will.'))return;
+  try{ await api('/api/assets/'+id,{method:'DELETE'}); toast('Asset deleted'); draw(); }
+  catch(e){ toast(e.message,true); }
+}
+
+async function ownerWill(){
+  const {will}=await api('/api/will');
+  const {assets}=await api('/api/assets');
+  const {users:bens}=await api('/api/beneficiaries');
+  if(!will) return `
+  <div class="card"><h2>Create your digital will</h2>
+    <p class="sub">Records which assets go to which beneficiary, and the condition for release.</p>
+    <div class="field"><label>Transfer condition</label><textarea id="wc">Release assigned assets once a death certificate is verified by the Verification Authority and the Legal Executor approves the request.</textarea></div>
+    <button class="btn" onclick="createWill()">Create digital will</button></div>`;
+  return `
+  <div class="card">
+    <h2>Digital will <span class="pill ${will.status==='active'?'p-green':'p-amber'}" style="margin-left:6px">${will.status==='active'?'Active':'Draft'}</span></h2>
+    <p class="sub">Last updated ${fmt(will.updatedAt)}</p>
+    <div class="field"><label>Transfer condition</label><textarea id="wc">${esc(will.condition)}</textarea></div>
+    <div class="row"><div><button class="btn" onclick="saveWill()">Save changes</button></div>
+      <div style="text-align:right"><button class="btn ghost" onclick="toggleWill('${will.status}')">${will.status==='active'?'Move to draft':'Activate will'}</button></div></div>
+  </div>
+  <div class="card"><h2>Assign beneficiaries</h2>
+    <p class="sub">Unassigned assets are never released, whatever the request status.</p>
+    ${assets.length?assets.map(a=>`<div class="item">
+      <div class="top"><span class="name">${esc(a.name)}</span><span class="pill p-grey">${esc(a.type)}</span></div>
+      <div class="row" style="margin-top:10px"><select onchange="allocate('${a.id}',this.value)">
+        <option value="">— Not assigned —</option>
+        ${bens.map(b=>`<option value="${b.id}" ${a.beneficiaryId===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}
+      </select></div></div>`).join(''):'<div class="empty">Add assets first, then assign them here.</div>'}
+  </div>`;
+}
+async function createWill(){
+  try{ await api('/api/will',{method:'POST',body:{condition:document.getElementById('wc').value}});
+    toast('Digital will created'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function saveWill(){
+  try{ await api('/api/will',{method:'PATCH',body:{condition:document.getElementById('wc').value}});
+    toast('Will updated'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function toggleWill(cur){
+  try{ await api('/api/will',{method:'PATCH',body:{status:cur==='active'?'draft':'active'}}); draw(); }
+  catch(e){ toast(e.message,true); }
+}
+async function allocate(assetId,beneficiaryId){
+  try{ await api('/api/will/allocate',{method:'POST',body:{assetId,beneficiaryId}});
+    toast('Beneficiary updated'); draw(); }catch(e){ toast(e.message,true); }
+}
+
+/* ===================================================================
+   REQUESTS (shared renderer)
+   =================================================================== */
+async function listRequests(as){
+  const {requests}=await api('/api/requests');
+  if(as==='owner') return `<div class="card"><h2>Access requests on my estate</h2>
+    <p class="sub">Raised by beneficiaries, tracked through verification and legal approval.</p>
+    ${requests.length?requests.map(r=>reqCard(r,'owner')).join(''):'<div class="empty">No access requests have been raised.</div>'}</div>`;
+  if(as==='verifier'){
+    const p=requests.filter(r=>r.status==='SUBMITTED'),d=requests.filter(r=>r.status!=='SUBMITTED');
+    return `<div class="card"><h2>Pending certificate verification <span class="pill p-amber" style="margin-left:6px">${p.length}</span></h2>
+      <p class="sub">Confirm the death certificate before the request reaches the Legal Executor.</p>
+      ${p.length?p.map(r=>reqCard(r,'verifier')).join(''):'<div class="empty">Nothing awaiting verification.</div>'}</div>
+      <div class="card"><h2>Processed</h2>${d.length?d.map(r=>reqCard(r,'x')).join(''):'<div class="empty">None yet.</div>'}</div>`;
+  }
+  const p=requests.filter(r=>['CERT_VERIFIED','EXECUTOR_APPROVED'].includes(r.status));
+  const d=requests.filter(r=>!['CERT_VERIFIED','EXECUTOR_APPROVED'].includes(r.status));
+  return `<div class="card"><h2>Awaiting legal decision <span class="pill p-blue" style="margin-left:6px">${p.length}</span></h2>
+    <p class="sub">Verify legal documents, then approve and release.</p>
+    ${p.length?p.map(r=>reqCard(r,'executor')).join(''):'<div class="empty">No requests awaiting a decision.</div>'}</div>
+    <div class="card"><h2>Other requests</h2>${d.length?d.map(r=>reqCard(r,'x')).join(''):'<div class="empty">Nothing else on file.</div>'}</div>`;
+}
+function reqCard(r,as){
+  return `<div class="item">
+    <div class="top"><span class="name">${esc(r.beneficiaryName)} → estate of ${esc(r.ownerName)}</span>
+      <span class="pill ${SP[r.status]}">${SL[r.status]}</span></div>
+    <div class="meta">Request ${esc(r.id)} · Raised ${fmt(r.createdAt)}</div>
+    ${steps(r.status)}
+    <div class="meta" style="margin-top:9px"><strong>Certificate:</strong> ${esc(r.certRef||'—')}
+      ${r.certBy?' · verified by '+esc(r.certBy):''}${r.certNote?'<br><em>'+esc(r.certNote)+'</em>':''}</div>
+    ${r.legalRef?`<div class="meta"><strong>Legal document:</strong> ${esc(r.legalRef)}</div>`:''}
+    ${r.execBy?`<div class="meta"><strong>Executor:</strong> ${esc(r.execBy)}${r.execNote?' — '+esc(r.execNote):''}</div>`:''}
+    ${as==='verifier'&&r.status==='SUBMITTED'?`
+      <div class="field" style="margin-top:11px"><label>Verification note</label><input id="vn-${r.id}" placeholder="Record of checks performed"></div>
+      <div class="actions"><button class="btn ok sm" onclick="verify('${r.id}',true)">Verify certificate</button>
+      <button class="btn bad sm" onclick="verify('${r.id}',false)">Reject</button></div>`:''}
+    ${as==='executor'&&r.status==='CERT_VERIFIED'?`
+      <div class="field" style="margin-top:11px"><label>Legal document reference</label><input id="lr-${r.id}" placeholder="e.g. Probate ref. PR/2026/118"></div>
+      <div class="field"><label>Decision note</label><input id="en-${r.id}" placeholder="Reason for the decision"></div>
+      <div class="actions"><button class="btn ok sm" onclick="approve('${r.id}',true)">Approve release</button>
+      <button class="btn bad sm" onclick="approve('${r.id}',false)">Reject</button></div>`:''}
+    ${as==='executor'&&r.status==='EXECUTOR_APPROVED'?`
+      <div class="actions"><button class="btn sm" onclick="release('${r.id}')">Release assets to beneficiary</button></div>`:''}
+  </div>`;
+}
+async function verify(id,ok){
+  try{ await api('/api/requests/'+id+'/verify',{method:'POST',
+    body:{approve:ok,note:(document.getElementById('vn-'+id)||{}).value||''}});
+    toast(ok?'Certificate verified':'Certificate rejected'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function approve(id,ok){
+  try{ await api('/api/requests/'+id+'/approve',{method:'POST',body:{approve:ok,
+    legalRef:(document.getElementById('lr-'+id)||{}).value||'',
+    note:(document.getElementById('en-'+id)||{}).value||''}});
+    toast(ok?'Release approved':'Request rejected'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function release(id){
+  try{ const d=await api('/api/requests/'+id+'/release',{method:'POST'});
+    toast(d.released+' asset(s) released'); draw(); }catch(e){ toast(e.message,true); }
+}
+
+/* ===================================================================
+   BENEFICIARY
+   =================================================================== */
+async function benAccess(){
+  const {users:owners}=await api('/api/owners');
+  const {requests}=await api('/api/requests');
+  return `<div class="card"><h2>Request access to an estate</h2>
+    <p class="sub">Checked by the Verification Authority, then the Legal Executor, before any asset is released.</p>
+    <div class="row">
+      <div class="field"><label>Estate owner</label><select id="ro">${owners.map(o=>`<option value="${o.id}">${esc(o.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Death certificate reference</label><input id="rc" placeholder="e.g. DC/TN/2026/00417"></div>
+    </div>
+    <button class="btn" onclick="raise()">Submit request</button></div>
+    <div class="card"><h2>My requests</h2>
+    ${requests.length?requests.map(r=>reqCard(r,'ben')).join(''):'<div class="empty">No requests raised yet.</div>'}</div>`;
+}
+async function raise(){
+  try{ await api('/api/requests',{method:'POST',body:{
+    ownerId:document.getElementById('ro').value,certRef:document.getElementById('rc').value}});
+    toast('Request submitted'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function benReleased(){
+  const {estates}=await api('/api/released');
+  if(!estates.length) return '<div class="card"><h2>Released assets</h2><div class="empty">No assets have been released to you yet.</div></div>';
+  return estates.map(e=>`<div class="card">
+    <h2>Estate of ${esc(e.ownerName)}</h2>
+    <p class="sub">Released ${fmt(e.releasedAt)} · Request ${esc(e.requestId)}</p>
+    ${e.assets.length?e.assets.map(a=>`<div class="item">
+      <div class="top"><span class="name">${esc(a.name)}</span><span class="pill p-grey">${esc(a.type)}</span>
+        <span class="pill p-green">Released</span></div>
+      <div class="meta">${esc(a.note||'')}</div>
+      <div class="actions"><button class="btn ghost sm" onclick="reveal('${a.id}')">Decrypt &amp; view</button>
+        <button class="btn ghost sm" onclick="dl('${a.id}','${esc(a.name)}')">Download</button></div>
+      <div id="pv-${a.id}" class="hide" style="margin-top:11px"></div></div>`).join('')
+      :'<div class="empty">No assets were assigned to you in this will.</div>'}</div>`).join('');
+}
+async function dl(id,name){
+  try{
+    const {content}=await api('/api/assets/'+id+'/content');
+    download(name.replace(/[^a-z0-9]+/gi,'_')+'.txt',
+      'DIGITAL LEGACY MANAGER — RELEASED ASSET\n'+'='.repeat(46)+
+      '\nAsset: '+name+'\nReleased to: '+me.name+'\nDate: '+fmt(new Date().toISOString())+'\n\n'+content+'\n');
+    toast('Download started');
+  }catch(e){ toast(e.message,true); }
+}
+
+/* ===================================================================
+   ADMIN
+   =================================================================== */
+async function adminOverview(){
+  const {stats}=await api('/api/stats');
+  const {requests}=await api('/api/requests');
+  return `<div class="grid g3" style="margin-bottom:16px">
+    <div class="stat"><div class="n">${stats.users}</div><div class="l">Accounts</div></div>
+    <div class="stat"><div class="n">${stats.assets}</div><div class="l">Digital assets</div></div>
+    <div class="stat"><div class="n">${stats.wills}</div><div class="l">Digital wills</div></div>
+    <div class="stat"><div class="n">${stats.requests}</div><div class="l">Total requests</div></div>
+    <div class="stat"><div class="n">${stats.inProgress}</div><div class="l">In progress</div></div>
+    <div class="stat"><div class="n">${stats.released}</div><div class="l">Released</div></div></div>
+    <div class="card"><h2>All access requests</h2>
+    ${requests.length?requests.map(r=>reqCard(r,'admin')).join(''):'<div class="empty">No requests recorded.</div>'}</div>
+    <div class="card"><h2>Reset demonstration data</h2>
+    <p class="sub">Restores the original accounts, assets and will, and signs you out.</p>
+    <button class="btn ghost" onclick="resetAll()">Reset to seed data</button></div>`;
+}
+async function resetAll(){
+  if(!confirm('Reset all data back to the original demo state? You will be signed out.'))return;
+  try{ await api('/api/admin/reset',{method:'POST'}); me=null; renderLogin(); toast('Demo data reset'); }
+  catch(e){ toast(e.message,true); }
+}
+async function adminUsers(){
+  const {users}=await api('/api/users');
+  return `<div class="card"><h2>Create account</h2>
+    <div class="row"><div class="field"><label>Full name</label><input id="nn"></div>
+      <div class="field"><label>Email</label><input id="ne" placeholder="name@dlm.demo"></div></div>
+    <div class="row"><div class="field"><label>Role</label><select id="nr">
+      ${Object.keys(ROLES).map(r=>`<option value="${r}">${ROLES[r]}</option>`).join('')}</select></div>
+      <div class="field"><label>Temporary password</label><input id="np" value="demo1234"></div></div>
+    <button class="btn" onclick="addUser()">Create account</button></div>
+  <div class="card"><h2>User accounts</h2>
+    ${users.map(u=>`<div class="item">
+      <div class="top"><span class="avatar">${initials(u.name)}</span><span class="name">${esc(u.name)}</span>
+        <span class="pill p-grey">${ROLES[u.role]}</span>
+        <span class="pill ${u.status==='active'?'p-green':'p-red'}">${u.status==='active'?'Active':'Suspended'}</span></div>
+      <div class="meta">${esc(u.email)}</div>
+      ${u.id!==me.id?`<div class="actions"><button class="btn ghost sm" onclick="susp('${u.id}')">${u.status==='active'?'Suspend':'Restore'}</button></div>`
+        :'<div class="meta" style="color:var(--fg3)">This is your own account.</div>'}</div>`).join('')}</div>`;
+}
+async function addUser(){
+  try{ await api('/api/users',{method:'POST',body:{name:document.getElementById('nn').value,
+    email:document.getElementById('ne').value,password:document.getElementById('np').value,
+    role:document.getElementById('nr').value}});
+    toast('Account created'); draw(); }catch(e){ toast(e.message,true); }
+}
+async function susp(id){
+  try{ const d=await api('/api/users/'+id,{method:'PATCH'}); toast('Account '+d.status); draw(); }
+  catch(e){ toast(e.message,true); }
+}
+async function adminAudit(){
+  const {audit}=await api('/api/audit');
+  return `<div class="card"><h2>Audit log <span class="pill p-grey" style="margin-left:6px">${audit.length}</span></h2>
+    <p class="sub">Server-side record of every significant action.</p>
+    <div class="actions" style="margin:0 0 14px"><button class="btn ghost sm" onclick="expAudit()">Export as text</button></div>
+    ${audit.map(g=>`<div class="item" style="padding:10px 13px">
+      <div class="top"><span class="pill p-blue">${esc(g.action)}</span>
+        <span class="meta" style="margin:0">${esc(g.actor)}</span><span class="spacer"></span>
+        <span class="meta mono" style="margin:0">${fmt(g.at)}</span></div>
+      <div class="meta">${esc(g.detail)}</div></div>`).join('')}</div>`;
+}
+async function expAudit(){
+  const {audit}=await api('/api/audit');
+  download('dlm_audit_log.txt','DIGITAL LEGACY MANAGER — AUDIT LOG\nGenerated '+fmt(new Date().toISOString())+
+    '\n'+'='.repeat(60)+'\n\n'+audit.map(g=>fmt(g.at)+'  ['+g.action+']  '+g.actor+'\n    '+g.detail).join('\n\n')+'\n');
+  toast('Audit log exported');
+}
+
+/* ===================================================================
+   NOTIFICATIONS
+   =================================================================== */
+async function notesView(){
+  const {notifications}=await api('/api/notifications');
+  await api('/api/notifications/read',{method:'POST'});
+  return `<div class="card"><h2>Notifications</h2>
+    <p class="sub">Raised by the server as requests move through the workflow.</p>
+    ${notifications.length?notifications.map(n=>`<div class="item" style="padding:11px 14px">
+      <div>${esc(n.text)}</div><div class="meta mono">${fmt(n.at)}</div></div>`).join('')
+      :'<div class="empty">No notifications.</div>'}</div>`;
+}
+
+/* ---------------- boot ---------------- */
+(async function(){
+  try{
+    const d=await api('/api/me');
+    backend=d.backend||''; me=d.user;
+    me?await render():renderLogin();
+  }catch(e){
+    document.getElementById('app').innerHTML=
+      '<div class="login-wrap"><div class="card" style="max-width:420px">'+
+      '<h2>Cannot reach the server</h2><p class="sub">Start it with <span class="mono">node server.js</span> '+
+      'and open <span class="mono">http://localhost:3000</span>.</p></div></div>';
+  }
+})();
+</script>
+</body>
+</html>
